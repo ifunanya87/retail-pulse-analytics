@@ -31,13 +31,32 @@ cython_debug/
 # UV / Python packaging
 __pypackages__/
 
-# Terraform
-.terraform/
+# Local .terraform directory
+**/.terraform/*
+
+# .tfstate files
 *.tfstate
 *.tfstate.backup
-*.tfvars
+*.tfstate.lock.info
 
-# VS Code (optional to include in repo for Codespaces)
+# Crash log files
+crash.log
+crash.*.log
+
+# Variables and secrets
+*.tfvars
+*.tfvars.json
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+terraform.rc
+.terraformrc
+
+# VS Code
 .vscode/
 
 # Ignore all JSON files
@@ -45,6 +64,10 @@ __pypackages__/
 
 # Exception: Keep devcontainer JSON
 !.devcontainer/devcontainer.json
+
+
+# Bruin
+.bruin/
 
 # Mac / Windows junk
 .DS_Store

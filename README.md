@@ -1,17 +1,53 @@
-# Retail Pulse Analytics: Canadian Economic Resilience (2021–2026) 
+# Retail Pulse Analytics
 
-An end-to-end **data engineering project** analyzing 5 years of Canadian retail and economic trends.
+An end-to-end data engineering project analyzing 5 years of wholesale liquor consumption and retail trends in Iowa.
 
 ---
 
 ## Problem Description
 
-The Canadian retail landscape has faced significant volatility from 2021 to 2026, influenced by post-pandemic recovery, high inflation, and shifting interest rates. This project builds an **automated pipeline** to ingest, transform, and visualize retail sales data to answer:
+The Iowa liquor market is a "controlled state" system, providing a transparent view of every wholesale transaction. This project builds an automated pipeline to analyze how socioeconomic factors and urban growth affect alcohol sales across Iowa's 99 counties to answer:
 
-- **Essential vs. Discretionary:** Are Canadians cutting back on groceries to afford "big-ticket" items like motor vehicles?  
-- **Regional Dominance:** Which provinces (e.g., Alberta vs. Ontario) are leading the economic recovery?  
-- **The E-commerce Shift:** Is digital trade continuing to grow as a percentage of total retail turnover in 2026?  
+- **Volume vs. Value**: Are consumers shifting toward premium "Top-Shelf" spirits or high-volume economy brands in 2026?
+- **Geospatial Hotspots**: Which counties (e.g., Polk vs. Linn) show the highest per-capita consumption growth?
+- **Vendor Dominance**: Which suppliers (e.g., Diageo, Sazerac) are gaining market share in the growing "Ready-to-Drink" category?
 
+---
+
+## Getting Started (Reproducibility)
+
+This project is designed to be fully reproducible using GitHub Codespaces or a local DevContainer. All system dependencies (Terraform, Bruin) and Python libraries are pre-configured.
+
+### 1. Development Environment
+
+The easiest way to run this project is to use the provided containerized environment:
+
+- Option A (Cloud): Open this repository in a GitHub Codespace.
+
+- Option B (Local): Open the folder in VS Code and click "Reopen in Container" when prompted (requires Docker).
+
+### 2. Quick Start
+
+Once the container is started, the environment is automatically initialized. You can verify the setup and sync dependencies using the Makefile:
+
+```bash
+# Verify system tools (Terraform, Bruin, uv) and sync Python libraries
+make
+```
+
+### 3. Manual Setup (If not using Containers)
+
+If you prefer to run this locally without Docker, you will need to:
+
+- Install Terraform v1.14.8 and Bruin CLI.
+
+- Install uv (Python package manager).
+
+- Run the setup command:
+
+```bash
+make setup
+```
 ---
 
 ![Work in Progress](https://img.shields.io/badge/status-in%20progress-1F4E79)

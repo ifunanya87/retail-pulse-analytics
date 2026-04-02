@@ -1,20 +1,26 @@
-FROM mcr.microsoft.com/devcontainers/python:3.11
+# Use the stable Python 3.11 tag
+FROM mcr.microsoft.com/devcontainers/python:3.11-bullseye
 
-# Install Terraform
-ARG TERRAFORM_VERSION=1.6.3
-RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
-    | tee /etc/apt/sources.list.d/hashicorp.list \
-    && apt-get update && apt-get install -y terraform=${TERRAFORM_VERSION}*
+# Install uv (Pinned version)
+COPY --from=ghcr.io/astral-sh/uv:0.11.3 /uv /uvx /bin/
 
-# Install Docker CLI, curl, unzip, and git
-RUN apt-get update && apt-get install -y docker.io curl unzip git
+# Install system dependencies + Clean up to keep image lean
+RUN rm -f /etc/apt/sources.list.d/yarn.list \
+    && apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install Bruin CLI
-RUN curl -LsSf https://getbruin.com/install/cli | sh
+# Download Bruin .deb package, verify SHA256, and install
+RUN curl -fL https://github.com/bruin-data/bruin/releases/download/v0.11.509/bruin_0.11.509_linux_amd64.deb -o /tmp/bruin.deb \
+    && echo "f190f1fc513eec4528d70d5a5faf44c275a47a959d4df6221cfcadeeaceb1753  /tmp/bruin.deb" | sha256sum -c - \
+    && dpkg -i /tmp/bruin.deb \
+    && rm /tmp/bruin.deb
+
+USER vscode
 
 # Set workdir
 WORKDIR /workspace

@@ -3,21 +3,29 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "features": {
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "1.14.8"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2.16.1": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.python",                 // Python support
-        "ms-python.vscode-pylance",         // Python language server
-        "hashicorp.terraform",              // Terraform syntax & commands
-        "googlecloudtools.cloudcode",       // GCP support
-        "mtxr.sqltools",                    // SQLTools
-        "redhat.vscode-yaml",               // YAML
-        "mechatroner.rainbow-csv",          // CSV visualization
-        "github.vscode-pull-request-github", // GitHub PRs
-        "bruin.bruin"                        // Bruin VSCode Extension (syntax, lineage, CLI integration)
+          "ms-python.python",                 // Python support
+          "ms-python.vscode-pylance",         // Python language server
+          "ms-toolsai.jupyter",               // Jupyter Notebook support
+          "ms-toolsai.jupyter-renderers",     // Better visualization for Notebook plots
+          "ms-vscode.makefile-tools",         // Makefile support (IntelliSense & Build targets)
+          "hashicorp.terraform",              // Terraform syntax & commands
+          "googlecloudtools.cloudcode",       // GCP support
+          "mtxr.sqltools",                    // SQLTools
+          "redhat.vscode-yaml",               // YAML
+          "mechatroner.rainbow-csv",          // CSV visualization
+          "github.vscode-pull-request-github", // GitHub PRs
+          "bruin.bruin"                       // Bruin VSCode Extension
       ]
     }
   },
-  "postCreateCommand": "uv sync",
-  "remoteUser": "vscode"
+  "postCreateCommand": "uv sync"
 }
