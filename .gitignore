@@ -38,6 +38,7 @@ __pypackages__/
 *.tfstate
 *.tfstate.backup
 *.tfstate.lock.info
+*.tfstate.*
 
 # Crash log files
 crash.log
@@ -46,6 +47,10 @@ crash.*.log
 # Variables and secrets
 *.tfvars
 *.tfvars.json
+
+# Sensitive vars
+terraform/temp.auto.tfvars
+terraform/tfplan
 
 # Override files
 override.tf
