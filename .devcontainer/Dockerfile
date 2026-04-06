@@ -10,8 +10,17 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
     curl \
     unzip \
     git \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
+    # 1. Add Google Cloud public key
+    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg \
+    # 2. Add the gcloud repository
+    && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
+    # 3. Install gcloud (Pinned to current stable version)
+    && apt-get update && apt-get install -y google-cloud-cli=563.0.0-0 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*f
 
 
 # Download Bruin .deb package, verify SHA256, and install

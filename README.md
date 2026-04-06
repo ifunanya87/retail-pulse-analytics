@@ -28,26 +28,36 @@ The easiest way to run this project is to use the provided containerized environ
 
 ### 2. Quick Start
 
-Once the container is started, the environment is automatically initialized. You can verify the setup and sync dependencies using the Makefile:
+Once the container is started, use the following commands to verify the environment and initialize your cloud session:
 
 ```bash
-# Verify system tools (Terraform, Bruin, uv) and sync Python libraries
-make
+# Verify system tools (Terraform, Bruin, uv, gcp-cloud-cli) and sync Python libraries
+make info
+
+# Authenticate with Google Cloud (ADC and CLI)
+make auth-check
 ```
 
-### 3. Manual Setup (If not using Containers)
 
-If you prefer to run this locally without Docker, you will need to:
+### 3. Manual Setup (Local Environment)
 
-- Install Terraform v1.14.8 and Bruin CLI.
+If you are not using the provided DevContainer, ensure your local machine has the following dependencies installed:
 
-- Install uv (Python package manager).
+* **Google Cloud CLI** (v563.0.0+): For authentication and API management.
+* **Terraform** (v1.14.8+): For Infrastructure as Code.
+* **Bruin CLI** (v0.11.509+): For data pipeline orchestration.
+* **uv**: For lightning-fast Python dependency management.
 
-- Run the setup command:
+> **Tip:** We recommend using the **VS Code DevContainer** to ensure you have the exact environment used for development.
 
-```bash
-make setup
-```
+* #### Execution
+>> 1. Create a `.env` file based on `.env.example`.
+>> 2. Run the automated setup:
+>>>> 
+>>>>> ```bash
+>>>>> make auth-check
+>>>>> make setup
+>>>>> ```
 ---
 
 ![Work in Progress](https://img.shields.io/badge/status-in%20progress-1F4E79)
