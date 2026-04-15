@@ -6,7 +6,7 @@ from logging.handlers import RotatingFileHandler
 
 
 def get_logger(name, log_file_name="pipeline.log", to_stdout=True):
-    root_dir = Path(__file__).resolve().parent.parent
+    root_dir = Path(__file__).resolve().parent.parent.parent
     log_dir = root_dir / "log"
     os.makedirs(log_dir, exist_ok=True)
     log_path = log_dir / log_file_name

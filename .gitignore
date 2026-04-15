@@ -3,6 +3,11 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+*.egg-info/
+dist/
+build/
+*.pyc
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

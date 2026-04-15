@@ -39,6 +39,7 @@ setup: info
 GCP_LOG := log/.gcloud_auth.log
 
 auth-check:
+	@mkdir -p log
 	@echo "=== New Auth Session: $$(date) ===" > $(GCP_LOG)
 	@echo "" >> $(GCP_LOG)
 	@echo "Checking for active GCP session"
@@ -83,7 +84,7 @@ enable-apis: auth-check
 bootstrap: setup enable-apis
 	@if [ ! -f .bootstrap_done ]; then \
 		echo "Creating Terraform State Bucket"; \
-		$(PYTHON) bootstrap/bootstrap_state.py && touch .bootstrap_done; \
+		$(PYTHON) -m bootstrap.bootstrap_state && touch .bootstrap_done; \
 	fi
 
 
@@ -100,23 +101,35 @@ generate_vars:
 	@echo 'dataset_gold       = "$(BQ_DATASET_GOLD)"' >> $(TF_DIR)/temp.auto.tfvars
 
 init:
-	terraform -C $(TF_DIR) init -backend-config="bucket=$(TF_STATE_BUCKET)" -reconfigure
+	@mkdir -p log
+	@echo "=== Terraform logging ===" >> $(GCP_LOG)
+	@echo "" >> $(GCP_LOG)
+	@if ! terraform -chdir=$(TF_DIR) init -backend-config="bucket=$(TF_STATE_BUCKET)" -reconfigure -input=false >> $(GCP_LOG) 2>&1; then \
+		echo "----------------------------------------------------------"; \
+		echo "Terraform init failed!"; \
+		echo "Check the detailed logs here: $(GCP_LOG)"; \
+		echo "----------------------------------------------------------"; \
+		exit 1; \
+	fi
+	@echo "Terraform initialized successfully."
 
 plan: bootstrap generate_vars init
 	@echo "Planning Infrastructure Changes"
-	terraform -C $(TF_DIR) plan -out=tfplan
+	@echo "" >> $(GCP_LOG)
+	terraform -chdir=$(TF_DIR) plan -out=tfplan >> $(GCP_LOG) 2>&1
 
 apply: plan
 	@echo "Applying Infrastructure Changes"
-	terraform -C $(TF_DIR) apply "tfplan"
+	@echo "" >> $(GCP_LOG)
+	terraform -chdir=$(TF_DIR) apply "tfplan" >> $(GCP_LOG) 2>&1
 	@rm -f $(TF_DIR)/tfplan $(TF_DIR)/temp.auto.tfvars
 	@$(MAKE) --no-print-directory output
 	@echo "Infrastructure deployment complete."
 
 output:
-	@#echo "Exporting Terraform outputs to file"
-	@#terraform -C $(TF_DIR) output -json > infra_outputs.json
-	@#echo "Outputs saved to infra_outputs.json"
+	@echo "Exporting Terraform outputs to file"
+	@terraform -chdir=$(TF_DIR) output -json > infra_outputs.json
+	@echo "Outputs saved to infra_outputs.json"
 
 
 

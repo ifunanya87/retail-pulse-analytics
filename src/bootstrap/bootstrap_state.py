@@ -5,24 +5,18 @@ from google.cloud import storage
 from google.api_core import exceptions
 from google.auth.exceptions import DefaultCredentialsError
 from dotenv import load_dotenv
+from utils.config import Config
 from utils.logger_config import get_logger
 
 
-# Get the directory path
-root_path = Path(__file__).resolve().parent.parent
-sys.path.append(str(root_path))
 # Logger
 logger = get_logger("bootstrap", "bootstrap.log", to_stdout=False)
 
 
-load_dotenv()
-
-
-
 def create_state_bucket():
-    bucket_name = os.getenv("TF_STATE_BUCKET")
-    project_id = os.getenv("GCP_PROJECT_ID")
-    location = os.getenv("GCP_REGION", "us-central1")
+    bucket_name = Config.TERRAFORM_STATE_BUCKET
+    project_id = Config.PROJECT_ID
+    location = Config.REGION
 
     if not bucket_name or not project_id:
         logger.error("Required ENV variables (TF_STATE_BUCKET, GCP_PROJECT_ID) missing.")

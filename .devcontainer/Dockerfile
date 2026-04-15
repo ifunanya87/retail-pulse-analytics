@@ -4,6 +4,11 @@ FROM mcr.microsoft.com/devcontainers/python:3.11-bullseye
 # Install uv (Pinned version)
 COPY --from=ghcr.io/astral-sh/uv:0.11.3 /uv /uvx /bin/
 
+# Prevent hardlink errors across different filesystems
+ENV UV_LINK_MODE=copy
+# Ensure the python output is sent straight to terminal)
+ENV PYTHONUNBUFFERED=1
+
 # Install system dependencies + Clean up to keep image lean
 RUN rm -f /etc/apt/sources.list.d/yarn.list \
     && apt-get update && apt-get install -y \
