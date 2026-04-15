@@ -1,0 +1,13 @@
+name: ingest_iowa_liquor
+type: python
+executable: ./.venv/bin/python
+script: ingestion/fetch_iowa_data.py
+foreach:
+  - name: year
+    values: [2021, 2022, 2023, 2024, 2025]
+  - name: month
+    values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+parameters:
+  year: "{{ .year }}"
+  month: "{{ .month }}"
+  limit: 50000

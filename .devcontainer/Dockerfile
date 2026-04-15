@@ -20,7 +20,7 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
     # 3. Install gcloud (Pinned to current stable version)
     && apt-get update && apt-get install -y google-cloud-cli=563.0.0-0 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*f
+    && rm -rf /var/lib/apt/lists/*
 
 
 # Download Bruin .deb package, verify SHA256, and install

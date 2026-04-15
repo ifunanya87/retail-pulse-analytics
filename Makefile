@@ -5,8 +5,11 @@ export
 # Variables
 VENV := .venv
 PYTHON := uv run python3
+TF_DIR := terraform
 
-.PHONY: all setup auth-check enable-apis bootstrap plan apply run info clean-tf clean generate_vars
+
+
+.PHONY: all info  setup auth-check set-quota enable-apis bootstrap generate_vars init plan apply output run clean-tf clean 
 
 
 
@@ -33,34 +36,38 @@ setup: info
 
 # *CLOUD FOUNDATION*
 
-# Define a hidden log file
-GCP_LOG := .gcloud_auth.log
+GCP_LOG := log/.gcloud_auth.log
 
 auth-check:
 	@echo "=== New Auth Session: $$(date) ===" > $(GCP_LOG)
+	@echo "" >> $(GCP_LOG)
 	@echo "Checking for active GCP session"
-	@# Check/Login for ADC (Terraform/Python)
+	
 	@if [ ! -f ~/.config/gcloud/application_default_credentials.json ]; then \
-		echo "No ADC session found. Starting login"; \
+		echo "No ADC session found. Starting login" | tee -a $(GCP_LOG); \
 		gcloud auth application-default login --no-launch-browser 2>&1 | tee -a $(GCP_LOG); \
 	else \
 		echo "Active ADC session found."; \
 	fi
 
-	@# Check/Login for CLI (gcloud commands)
 	@ACCOUNT=$$(gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>/dev/null); \
 	if [ -n "$$ACCOUNT" ]; then \
-		echo "The active account found is: $$ACCOUNT" >> $(GCP_LOG) 2>&1; \
+		echo "The active account found is: $$ACCOUNT" >> $(GCP_LOG); \
 		echo "Active CLI session found."; \
 	else \
-		echo "No CLI account active. Starting login..." | tee -a $(GCP_LOG); \
-		gcloud auth login --no-launch-browser 2>&1 | tee -a $(GCP_LOG); \
+		echo "No CLI account active. Starting login" | tee -a $(GCP_LOG); \
+		gcloud auth login --no-launch-browser 2>&1 \
+			| tee -a $(GCP_LOG) \
+			| grep -v "You are now logged in"; \
 	fi
-	@$(MAKE) set-quota
+
+	@echo "----------------------------------------------------------------"
+	@echo "Auth complete. The logged identity is recorded in $(GCP_LOG)"
+	@echo "----------------------------------------------------------------"
+	@$(MAKE) --no-print-directory set-quota
 
 set-quota:
 	@echo "=== Syncing Config for $(REPO_PROJECT_NAME) ==="
-	@echo "Logging to $(GCP_LOG)"
 	@gcloud config set project $(GCP_PROJECT_ID) >> $(GCP_LOG) 2>&1
 	@gcloud auth application-default set-quota-project $(GCP_PROJECT_ID) >> $(GCP_LOG) 2>&1
 
@@ -73,47 +80,52 @@ enable-apis: auth-check
 	@echo "APIs enabled. Waiting 30s for propagation"
 	@sleep 30
 
-# Intelligent bootstrap: only runs if the marker file doesn't exist
 bootstrap: setup enable-apis
 	@if [ ! -f .bootstrap_done ]; then \
 		echo "Creating Terraform State Bucket"; \
 		$(PYTHON) bootstrap/bootstrap_state.py && touch .bootstrap_done; \
 	fi
 
-# Helper to generate temporary tfvars from .env
+
+
+# *TERRAFORM*
+
 generate_vars:
-	@echo 'project_id         = "$(GCP_PROJECT_ID)"' > terraform/temp.auto.tfvars
-	@echo 'region             = "$(GCP_REGION)"' >> terraform/temp.auto.tfvars
-	@echo 'tf_service_account = "$(TF_SA_EMAIL)"' >> terraform/temp.auto.tfvars
-	@echo 'raw_bucket_name    = "$(GCS_RAW_DATA_BUCKET)"' >> terraform/temp.auto.tfvars
-	@echo 'dataset_bronze     = "$(BQ_DATASET_BRONZE)"' >> terraform/temp.auto.tfvars
-	@echo 'dataset_silver     = "$(BQ_DATASET_SILVER)"' >> terraform/temp.auto.tfvars
-	@echo 'dataset_gold       = "$(BQ_DATASET_GOLD)"' >> terraform/temp.auto.tfvars
+	@echo 'project_id         = "$(GCP_PROJECT_ID)"' > $(TF_DIR)/temp.auto.tfvars
+	@echo 'region             = "$(GCP_REGION)"' >> $(TF_DIR)/temp.auto.tfvars
+	@echo 'tf_service_account = "$(TF_SA_EMAIL)"' >> $(TF_DIR)/temp.auto.tfvars
+	@echo 'raw_bucket_name    = "$(GCS_RAW_DATA_BUCKET)"' >> $(TF_DIR)/temp.auto.tfvars
+	@echo 'dataset_bronze     = "$(BQ_DATASET_BRONZE)"' >> $(TF_DIR)/temp.auto.tfvars
+	@echo 'dataset_silver     = "$(BQ_DATASET_SILVER)"' >> $(TF_DIR)/temp.auto.tfvars
+	@echo 'dataset_gold       = "$(BQ_DATASET_GOLD)"' >> $(TF_DIR)/temp.auto.tfvars
 
+init:
+	terraform -C $(TF_DIR) init -backend-config="bucket=$(TF_STATE_BUCKET)" -reconfigure
 
-# Generates the execution plan
-plan: bootstrap generate_vars
+plan: bootstrap generate_vars init
 	@echo "Planning Infrastructure Changes"
-	cd terraform && terraform init -backend-config="bucket=$(TF_STATE_BUCKET)"
-	cd terraform && terraform plan -var-file="temp.auto.tfvars" -out=tfplan
+	terraform -C $(TF_DIR) plan -out=tfplan
 
-# Applies the PREVIOUSLY generated plan
 apply: plan
 	@echo "Applying Infrastructure Changes"
-	cd terraform && terraform apply "tfplan"
-	@rm -f terraform/tfplan terraform/temp.auto.tfvars
+	terraform -C $(TF_DIR) apply "tfplan"
+	@rm -f $(TF_DIR)/tfplan $(TF_DIR)/temp.auto.tfvars
+	@$(MAKE) --no-print-directory output
 	@echo "Infrastructure deployment complete."
+
+output:
+	@#echo "Exporting Terraform outputs to file"
+	@#terraform -C $(TF_DIR) output -json > infra_outputs.json
+	@#echo "Outputs saved to infra_outputs.json"
 
 
 
 # *PIPELINE ORCHESTRATION*
 
-# Triggers Bruin to handle Ingestion -> GCS -> BigQuery -> dbt
 run: auth-check
 	@echo "Executing Iowa Liquor Pipeline (Impersonating $(TF_SA_EMAIL))"
 	@gcloud config set auth/impersonate_service_account $(TF_SA_EMAIL)
 	bruin run
-	@# Unset impersonation after the run to avoid local confusion
 	@gcloud config unset auth/impersonate_service_account
 
 
@@ -121,8 +133,8 @@ run: auth-check
 # *CLEANUP*
 
 clean-tf:
-	rm -rf terraform/.terraform
-	rm -f terraform/terraform.tfstate*
+	rm -rf $(TF_DIR)/.terraform
+	rm -f $(TF_DIR)/terraform.tfstate*
 	rm -f .bootstrap_done
 
 clean: clean-tf

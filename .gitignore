@@ -33,8 +33,10 @@ __pypackages__/
 
 
 # Local state and bootstrap markers
+log/
+*.log
 .bootstrap_done
-.gcloud_auth.log
+*/.bootstrap_done
 
 # Local .terraform directory
 **/.terraform/*
