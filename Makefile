@@ -9,7 +9,7 @@ TF_DIR := terraform
 
 
 
-.PHONY: all info  setup auth-check set-quota enable-apis bootstrap generate_vars init plan apply output run clean-tf clean dev test-jan
+.PHONY: all info  setup auth-check set-quota enable-apis bootstrap generate_vars init plan apply output run clean-tf clean dev run-months-batched
 
 
 
@@ -142,19 +142,42 @@ run: auth-check
 	@gcloud config set auth/impersonate_service_account $(TF_SA_EMAIL) >> $(GCP_LOG) 2>&1
 	@#gcloud config unset auth/impersonate_service_account
 
-# Start the Dagster UI and Daemon
-dev:
-	@mkdir -p log/dagster_storage
-	dagster dev -m orchestration.dagster_project.definitions
 
-# Trigger the test month (Run this in a second terminal window)
-test-jan:
-	@dagster asset backfill \
-		--assets iowa_liquor_expected_counts,iowa_liquor_assets_parallel \
-		--partitions 2021-01-01
-	@#dagster asset backfill \
-		--assets iowa_liquor_expected_counts,iowa_liquor_assets_parallel \
-		--partitions 2023-01-01..2023-06-01
+# Trigger batch run to ingest data
+run-months-batched:
+	@# Batch 1: January & February
+	@for m in 01 02; do \
+		echo "Starting Partition: 2025-$$m-01"; \
+		dagster job execute \
+			-m orchestration.dagster_project.definitions \
+			-j iowa_liquor_parallel_job \
+			--tags "{\"dagster/partition\": \"2025-$$m-01\"}"; \
+	done
+	
+	@echo "===Batch 1 Complete. Resting for 30s==="
+	@sleep 30
+	
+	@# Batch 2: March & April
+	@for m in 03 04; do \
+		echo "Starting Partition: 2025-$$m-01"; \
+		dagster job execute \
+			-m orchestration.dagster_project.definitions \
+			-j iowa_liquor_parallel_job \
+			--tags "{\"dagster/partition\": \"2025-$$m-01\"}"; \
+	done
+	
+	@echo "===Batch 2 Complete. Resting for 30s==="
+	@sleep 30
+
+	@# Batch 3: May & June
+	@for m in 05 06; do \
+		echo "Starting Partition: 2025-$$m-01"; \
+		dagster job execute \
+			-m orchestration.dagster_project.definitions \
+			-j iowa_liquor_parallel_job \
+			--tags "{\"dagster/partition\": \"2025-$$m-01\"}"; \
+	done
+	@echo "===All Batches Finished==="
 
 
 # *CLEANUP*

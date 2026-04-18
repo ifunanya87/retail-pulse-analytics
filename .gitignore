@@ -87,8 +87,27 @@ terraform.rc
 # dlt
 *.dlt/secrets.toml
 
-# dagster
-*.tmp_dagster_home_*
+# Dagster metadata and local storage
+.dagster/
+storage/
+dagster_storage/
+**/storage/
+**/dagster_storage/
+
+# Dagster Telemetry
+.telemetry/
+**/.telemetry/
+
+# Local logs and run history
+*.log
+logs/
+**/logs/
+
+# SQLite databases created by Dagster
+*.db
+*.sqlite
+
+
 
 # Mac / Windows junk
 .DS_Store

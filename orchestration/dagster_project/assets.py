@@ -166,8 +166,6 @@ iowa_liquor_assets_parallel = [make_liquor_asset(res) for res in resource_names]
     description="Refreshed only after ALL months of sales data are loaded."
 )
 def iowa_liquor_external_table(context: AssetExecutionContext):
-    # iowa_liquor_sales is passed in but doesn't need to be used if create_external_table()
-    # is a standalone helper function.
     table_id = create_external_table()
     # Record the result back to Dagster so it shows up in the 'Activity' tab
     context.add_output_metadata(

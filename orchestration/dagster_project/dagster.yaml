@@ -1,10 +1,12 @@
-# dagster_home/dagster.yaml
 storage:
   sqlite:
-    base_dir: /workspaces/retail-pulse-analytics/log/dagster_storage
+    base_dir: /workspaces/retail-pulse-analytics/orchestration/dagster_project
 
-run_retention:
-  max_runs: 20
+retention:
+  schedule:
+    purge_after_days: 30
+  sensor:
+    purge_after_days: 30
 
 run_coordinator:
   module: dagster._core.run_coordinator
@@ -14,4 +16,3 @@ run_coordinator:
     tag_concurrency_limits:
       - key: "dagster/backfill"
         limit: 1
-        
