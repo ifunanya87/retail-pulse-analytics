@@ -27,13 +27,6 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-
-# Download Bruin .deb package, verify SHA256, and install
-RUN curl -fL https://github.com/bruin-data/bruin/releases/download/v0.11.509/bruin_0.11.509_linux_amd64.deb -o /tmp/bruin.deb \
-    && echo "f190f1fc513eec4528d70d5a5faf44c275a47a959d4df6221cfcadeeaceb1753  /tmp/bruin.deb" | sha256sum -c - \
-    && dpkg -i /tmp/bruin.deb \
-    && rm /tmp/bruin.deb
-
 USER vscode
 
 # Set workdir

@@ -9,7 +9,7 @@ TF_DIR := terraform
 
 
 
-.PHONY: all info  setup auth-check set-quota enable-apis bootstrap generate_vars init plan apply output run clean-tf clean 
+.PHONY: all info  setup auth-check set-quota enable-apis bootstrap generate_vars init plan apply output run clean-tf clean dev test-jan
 
 
 
@@ -24,12 +24,12 @@ info:
 	@echo "=== System Tool Check ==="
 	@terraform --version | head -n 1 || echo "Terraform not found"
 	@gcloud --version | head -n 1 || echo "Google Cloud CLI not found"
-	@bruin --version || echo "Bruin not found"
 	@uv --version || echo "uv not found"
 
 setup: info
 	@echo "Syncing Python environment"
 	uv sync
+	uv pip install -e .
 	@echo "Setup complete. Virtual environment ready."
 
 
@@ -84,7 +84,7 @@ enable-apis: auth-check
 bootstrap: setup enable-apis
 	@if [ ! -f .bootstrap_done ]; then \
 		echo "Creating Terraform State Bucket"; \
-		$(PYTHON) -m bootstrap.bootstrap_state && touch .bootstrap_done; \
+		$(PYTHON) -m utils.bootstrap_state && touch .bootstrap_done; \
 	fi
 
 
@@ -136,11 +136,25 @@ output:
 # *PIPELINE ORCHESTRATION*
 
 run: auth-check
-	@echo "Executing Iowa Liquor Pipeline (Impersonating $(TF_SA_EMAIL))"
-	@gcloud config set auth/impersonate_service_account $(TF_SA_EMAIL)
-	bruin run
-	@gcloud config unset auth/impersonate_service_account
+	@echo "Executing Iowa Liquor Pipeline"
+	@echo "----------------------------------------------------------" >> $(GCP_LOG)
+	@echo "" >> $(GCP_LOG)
+	@gcloud config set auth/impersonate_service_account $(TF_SA_EMAIL) >> $(GCP_LOG) 2>&1
+	@#gcloud config unset auth/impersonate_service_account
 
+# Start the Dagster UI and Daemon
+dev:
+	@mkdir -p log/dagster_storage
+	dagster dev -m orchestration.dagster_project.definitions
+
+# Trigger the test month (Run this in a second terminal window)
+test-jan:
+	@dagster asset backfill \
+		--assets iowa_liquor_expected_counts,iowa_liquor_assets_parallel \
+		--partitions 2021-01-01
+	@#dagster asset backfill \
+		--assets iowa_liquor_expected_counts,iowa_liquor_assets_parallel \
+		--partitions 2023-01-01..2023-06-01
 
 
 # *CLEANUP*

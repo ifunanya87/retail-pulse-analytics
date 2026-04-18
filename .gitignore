@@ -39,6 +39,7 @@ __pypackages__/
 
 # Local state and bootstrap markers
 log/
+data/
 *.log
 .bootstrap_done
 */.bootstrap_done
@@ -83,9 +84,13 @@ terraform.rc
 !.devcontainer/devcontainer.json
 
 
-# Bruin
-.bruin/
+# dlt
+*.dlt/secrets.toml
+
+# dagster
+*.tmp_dagster_home_*
 
 # Mac / Windows junk
 .DS_Store
 Thumbs.db
+

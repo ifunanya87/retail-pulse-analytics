@@ -5,11 +5,20 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "google-cloud-storage>=3.10.1",
+    "dagster>=1.13.0",
+    "dagster-pipes>=1.13.0",
+    "dagster-webserver>=1.13.0",
+    "dlt[gs]>=1.25.0",
+    # "google-cloud-storage>=3.10.1",
     "pandas>=3.0.2",
     "pyarrow>=23.0.1",
-    "python-dotenv>=1.2.2",
-    "requests>=2.33.1",
+    # "python-dotenv>=1.2.2",
+    "google-cloud-storage",
+    "python-dotenv",
+    "requests>=2.28.0,<2.32.0",
+    "dagster-dbt",
+    "dbt-bigquery",
+    "dagster_dlt",
 ]
 
 [tool.setuptools.packages.find]

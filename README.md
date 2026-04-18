@@ -26,38 +26,38 @@ The easiest way to run this project is to use the provided containerized environ
 
 - Option B (Local): Open the folder in VS Code and click "Reopen in Container" when prompted (requires Docker).
 
-### 2. Quick Start
+#### - Quick Start (Cloud Environment)
 
-Once the container is started, use the following commands to verify the environment and initialize your cloud session:
+>>>>Once the container is started, use the following commands to verify the environment and initialize your cloud session:
 
-```bash
-# Verify system tools (Terraform, Bruin, uv, gcp-cloud-cli) and sync Python libraries
-make info
+>>>>```bash
+>>>># Verify system tools (Terraform, Bruin, uv, gcp-cloud-cli) and sync Python libraries
+>>>>make setup
+>>>># Authenticate with Google Cloud (ADC and CLI)
+>>>>make auth-check
+>>>>```
 
-# Authenticate with Google Cloud (ADC and CLI)
-make auth-check
-```
 
+#### - Manual Setup (Local Environment)
 
-### 3. Manual Setup (Local Environment)
+>>>>If you are not using the provided DevContainer, ensure your local machine has the following dependencies installed:
 
-If you are not using the provided DevContainer, ensure your local machine has the following dependencies installed:
+>>>>* **Google Cloud CLI** (v563.0.0+): For authentication and API management.
+>>>>* **Terraform** (v1.14.8+): For Infrastructure as Code.
+>>>>* **uv**: For lightning-fast Python dependency management.
 
-* **Google Cloud CLI** (v563.0.0+): For authentication and API management.
-* **Terraform** (v1.14.8+): For Infrastructure as Code.
-* **Bruin CLI** (v0.11.509+): For data pipeline orchestration.
-* **uv**: For lightning-fast Python dependency management.
+>>>> **Tip:** We recommend using the **VS Code DevContainer** to ensure you have the exact environment used for development.
 
-> **Tip:** We recommend using the **VS Code DevContainer** to ensure you have the exact environment used for development.
+>>>>* ##### Execution
+>>>>>> 1. Create a `.env` file based on `.env.example`.
+>>>>>> 2. Run the automated setup:
+>>>>>>>> 
+>>>>>>>>> ```bash
+>>>>>>>>> make setup
+>>>>>>>>> make auth-check
+>>>>>>>>> ```
 
-* #### Execution
->> 1. Create a `.env` file based on `.env.example`.
->> 2. Run the automated setup:
->>>> 
->>>>> ```bash
->>>>> make auth-check
->>>>> make setup
->>>>> ```
+### 2. Run Pipeline
 ---
 
 ![Work in Progress](https://img.shields.io/badge/status-in%20progress-1F4E79)

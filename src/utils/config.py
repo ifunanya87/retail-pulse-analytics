@@ -14,6 +14,7 @@ class Config:
     # GCP & Infrastructure
     PROJECT_ID = os.getenv("GCP_PROJECT_ID")
     REGION = os.getenv("GCP_REGION", "us-central1")
+    SERVICE_ACCOUNT= os.getenv("TF_SA_EMAIL")
     
     # Storage & BigQuery
     TERRAFORM_STATE_BUCKET = os.getenv("TF_STATE_BUCKET", f"{PROJECT_ID}-tfstate")
@@ -25,12 +26,15 @@ class Config:
 
     # Data Ingestion (Socrata API)
     DATA_SOURCE_URL = os.getenv("DATA_SOURCE_URL")
+    API_PAGE_LIMIT = os.getenv("IOWA_API_PAGE_LIMIT")
+    SODA_APP_TOKEN = os.getenv("SOURCES__IOWA_LIQUOR__API_KEY")
+
     
     # Validation Logic
     @classmethod
     def validate(cls):
         """Ensures critical settings aren't missing before the pipeline starts."""
-        required = ["PROJECT_ID", "DATA_SOURCE_URL"]
+        required = ["PROJECT_ID", "DATA_SOURCE_URL", "TERRAFORM_STATE_BUCKET", "RAW_DATA_BUCKET"]
         for var in required:
             if not getattr(cls, var):
                 raise ImportError(f"CRITICAL: {var} is missing from the .env file.")
