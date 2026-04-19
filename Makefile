@@ -6,10 +6,15 @@ export
 VENV := .venv
 PYTHON := uv run python3
 TF_DIR := terraform
+DBT_DIR := src/transformation/dbt_project
 
 
 
-.PHONY: all info  setup auth-check set-quota enable-apis bootstrap generate_vars init plan apply output run clean-tf clean dev run-months-batched
+.PHONY: all info  setup \
+		auth-check set-quota enable-apis bootstrap \
+		generate_vars init plan apply output \
+		run  run-months-batched setup_dbt stg test \
+		clean-tf clean
 
 
 
@@ -179,6 +184,16 @@ run-months-batched:
 	done
 	@echo "===All Batches Finished==="
 
+
+setup_dbt:
+	@chmod +x scripts/setup_dbt.sh
+	@./scripts/setup_dbt.sh
+
+stg:
+	dbt run --project-dir $(DBT_DIR) --select stg_iowa_liquor__sales
+
+test:
+	dbt test --project-dir $(DBT_DIR) --select stg_iowa_liquor__sales
 
 # *CLEANUP*
 

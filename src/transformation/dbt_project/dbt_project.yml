@@ -1,0 +1,38 @@
+# Project name
+name: 'dbt_project'
+version: '1.0.0'
+
+# Which "profile" dbt uses for this project.
+profile: 'dbt_project'
+
+# Where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:         # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_packages"
+
+
+# Configuring models
+# Full documentation: https://docs.getdbt.com/docs/configuring-models
+
+# config files using the `{{ config(...) }}` macro.
+models:
+  dbt_project:
+    +materialized: view   # default
+
+    # Specific configuration
+    staging:
+      +materialized: view
+
+    intermediate:
+      +materialized: view
+
+    marts:
+      +materialized: table
+      +schema: liquor_gold

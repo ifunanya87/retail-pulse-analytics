@@ -107,7 +107,10 @@ logs/
 *.db
 *.sqlite
 
-
+# dbt
+~/.dbt/profiles.yml
+target/
+dbt_packages/
 
 # Mac / Windows junk
 .DS_Store

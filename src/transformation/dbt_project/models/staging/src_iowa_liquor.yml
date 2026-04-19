@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: iowa_liquor_raw
+    database: retail-analysis-project-492114
+    schema: liquor_bronze  # Your Terraform-created Bronze dataset
+    tables:
+      - name: iowa_liquor_sales_external_raw # External table in terraform Bronze dataset
+        description: "Raw transactions from Jan 2025 to June 2025."
+        tests:
+          - unique:
+              column_name: invoice_line_no
+          - not_null:
+              column_name: invoice_line_no
+              
