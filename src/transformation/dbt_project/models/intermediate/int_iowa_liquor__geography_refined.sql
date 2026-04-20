@@ -9,6 +9,9 @@
     - Serves as the primary source for geography-based Marts (Gold layer).
 */
 
+{{ config(
+    materialized='view'
+) }}
 
 with staging as (
     select * from {{ ref('stg_iowa_liquor__sales') }}

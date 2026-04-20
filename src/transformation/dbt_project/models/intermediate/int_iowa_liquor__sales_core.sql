@@ -6,6 +6,16 @@
     - Filters out metadata columns and selects only the 'Core' columns needed for BI.
 */
 
+{{ config(
+    materialized='table',
+    partition_by={
+      "field": "transaction_date",
+      "data_type": "date",
+      "granularity": "month"
+    },
+    cluster_by=["vendor_name", "county"]
+) }}
+
 with sales as (
     select * from {{ ref('stg_iowa_liquor__sales') }}
 ),

@@ -14,7 +14,7 @@ STREAM_APP := src/visualization/streamlit-dashboard.py
 		auth-check set-quota enable-apis bootstrap \
 		generate_vars init plan apply output \
 		run  run-months-batched setup-dbt run-dbt stream pipeline\
-		clean-auth clean-tf clean
+		clean-auth clean-tf clean-logs clean destroy
 
 
 
@@ -217,8 +217,22 @@ clean-auth:
 clean-tf:
 	rm -rf $(TF_DIR)/.terraform
 	rm -f $(TF_DIR)/terraform.tfstate*
+	rm -f $(TF_DIR)/temp.auto.tfvars
 	rm -f .bootstrap_done
 
-clean: clean-tf
+clean-logs:
+	rm -rf log/*
+
+clean: clean-auth clean-tf clean-logs
 	rm -rf $(VENV)
-	@echo "Environment wiped."
+	rm -f infra_outputs.json
+	@echo "Environment wiped (local only)."
+
+destroy: auth-check
+	@echo "Destroying Infrastructure (DANGEROUS)"
+	@read -p "Are you sure you want to destroy all resources? [y/N] " confirm; \
+	if [ "$$confirm" = "y" ]; then \
+		terraform -chdir=$(TF_DIR) destroy -auto-approve; \
+	else \
+		echo "Destroy cancelled."; \
+	fi

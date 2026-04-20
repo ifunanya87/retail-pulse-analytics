@@ -7,6 +7,17 @@
     - Implements 3-layer Vendor cleanup (Split -> Map -> Regex Fallback).
 */
 
+{{ config(
+    materialized='table',
+    partition_by={
+      "field": "transaction_date",
+      "data_type": "date",
+      "granularity": "month"
+    },
+    cluster_by=["vendor_name_standardized", "category_group"]
+) }}
+
+
 with base as (
     select
         *,

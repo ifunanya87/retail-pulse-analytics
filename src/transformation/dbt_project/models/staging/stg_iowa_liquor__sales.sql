@@ -4,6 +4,16 @@
     Purpose: Cast strings to proper types and standardize geography using safe_cast for resilience.
 */
 
+{{ config(
+    materialized='table',
+    partition_by={
+      "field": "transaction_date",
+      "data_type": "date",
+      "granularity": "day"
+    },
+    cluster_by=["invoice_id", "vendor_name"]
+) }}
+
 with source as (
     select * from {{ source('iowa_liquor_raw', 'iowa_liquor_sales_external_raw') }}
 ),
@@ -11,7 +21,8 @@ with source as (
 renamed_and_cast as (
     select
         invoice_line_no as invoice_id,
-        date as transaction_date,
+        -- Explicitly cast to timestamp to match your partition config
+        safe_cast(date as date) as transaction_date,
         store as store_id,
         upper(trim(name)) as store_name, 
         upper(trim(city)) as city,

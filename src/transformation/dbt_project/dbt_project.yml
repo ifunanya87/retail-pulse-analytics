@@ -18,14 +18,14 @@ clean-targets:
 
 models:
   dbt_project:
-    +materialized: view 
+    +materialized: table 
 
     staging:
-      +materialized: view
+      +materialized: table
       +schema: liquor_silver
 
     intermediate:
-      +materialized: view
+      +materialized: table
       +schema: liquor_silver
 
     marts:

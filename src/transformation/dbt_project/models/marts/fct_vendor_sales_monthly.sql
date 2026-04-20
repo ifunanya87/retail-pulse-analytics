@@ -17,7 +17,7 @@
             "data_type": "date",
             "granularity": "month"
         },
-        cluster_by=['vendor_name']
+        cluster_by=['vendor_name', 'category_name']
     )
 }}
 
