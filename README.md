@@ -54,7 +54,7 @@ Based on the analysis of the Jan 2025 – June 2025 data scope, the following re
 
 ## Analytics Dashboard
 
-![Iowa Liquor Sales Executive Summary](./images/iowa_liquor_vendor_performance.png)
+![Iowa Liquor Sales Executive Summary](https://github.com/ifunanya87/retail-pulse-analytics/blob/main/images/Iowa%20Liquor%20Vendor%20Performance%20.png)
 ---
 
 ## Tech Stack
