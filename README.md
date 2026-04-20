@@ -52,6 +52,11 @@ Based on the analysis of the Jan 2025 – June 2025 data scope, the following re
 
 ---
 
+## Analytics Dashboard
+
+![Iowa Liquor Sales Executive Summary](./images/iowa_liquor_vendor_performance.png)
+---
+
 ## Tech Stack
 
 | Category       | Tool                  | Purpose                                                     |
