@@ -7,14 +7,14 @@ VENV := .venv
 PYTHON := uv run python3
 TF_DIR := terraform
 DBT_DIR := src/transformation/dbt_project
-
+STREAM_APP := src/visualization/streamlit-dashboard.py
 
 
 .PHONY: all info  setup \
 		auth-check set-quota enable-apis bootstrap \
 		generate_vars init plan apply output \
 		run  run-months-batched setup-dbt run-dbt \
-		clean-tf clean
+		stream clean-tf clean
 
 
 
@@ -201,6 +201,9 @@ run-dbt:
 	dbt test --project-dir $(DBT_DIR)
 
 
+stream:
+	@echo "Launching Vendor Performance Dashboard"
+	@streamlit run $(STREAM_APP)
 
 
 # *CLEANUP*

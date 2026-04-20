@@ -68,7 +68,8 @@ final_aggregation as (
         sum(case when transaction_type = 'SALE' then sale_liters else 0 end) as total_sales_liters,
         count(case when transaction_type = 'SALE' then invoice_id end) as total_sales_count,
 
-        sum(case when transaction_type = 'RETURN' then sale_dollars else 0 end) as total_refunded_dollars,
+        -- FIX: normalize returns (critical fix)
+        sum(case when transaction_type = 'RETURN' then abs(sale_dollars) else 0 end) as total_refunded_dollars,
         count(case when transaction_type = 'RETURN' then invoice_id end) as return_count
 
     from base_events

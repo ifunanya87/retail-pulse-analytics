@@ -21,7 +21,7 @@ windowed_insights as (
         *,
         
         -- Net Cashflow
-        (total_sales_revenue - abs(coalesce(total_refunded_dollars, 0))) as net_revenue,
+        (total_sales_revenue - total_refunded_dollars) as net_revenue,
 
         -- Vendor share of category revenue
         safe_divide(
@@ -35,28 +35,44 @@ windowed_insights as (
             order by total_sales_revenue desc
         ) as vendor_rank_in_category,
 
-        -- Category benchmark return rate (derived ONLY for comparison, not redefining fact metric)
+        -- Category benchmark return rate
         avg(return_rate) over (
             partition by category_name, partition_month
-        ) as category_avg_return_rate
+        ) as category_avg_return_rate,
+
+        -- Percentile-based return rate ranking
+        percent_rank() over (
+            partition by category_name, partition_month
+            order by return_rate
+        ) as return_rate_percentile
 
     from base_metrics
+),
+
+final as (
+
+    select 
+        *,
+        
+        -- Risk metric
+        case 
+            when total_sales_revenue = 0 then 0 
+            else total_refunded_dollars / total_sales_revenue 
+        end as return_value_ratio,
+
+        -- ANOMALY DETECTION
+        case 
+            when return_rate_percentile >= 0.95 
+                 and total_sales_revenue > 1000 
+                 then 'ANOMALY_HIGH_RETURNS'
+            when return_rate_percentile <= 0.05 
+                 and total_sales_revenue > 1000 
+                 and return_count > 0 
+                 then 'LOW_RETURNS'
+            else 'NORMAL'
+        end as return_anomaly_flag
+
+    from windowed_insights
 )
 
-select 
-    *,
-    
-    -- Risk metric
-    case 
-        when total_sales_revenue = 0 then 0 
-        else abs(total_refunded_dollars) / total_sales_revenue 
-    end as return_value_ratio,
-
-    -- Anomaly detection
-    case 
-        when return_rate > (category_avg_return_rate * 1.5) then 'ANOMALY_HIGH_RETURNS'
-        when return_rate < (category_avg_return_rate * 0.5) and return_count > 0 then 'LOW_RETURNS'
-        else 'NORMAL'
-    end as return_anomaly_flag
-
-from windowed_insights
+select * from final
