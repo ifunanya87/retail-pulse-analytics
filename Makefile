@@ -13,8 +13,8 @@ STREAM_APP := src/visualization/streamlit-dashboard.py
 .PHONY: all info  setup \
 		auth-check set-quota enable-apis bootstrap \
 		generate_vars init plan apply output \
-		run  run-months-batched setup-dbt run-dbt \
-		stream clean-tf clean
+		run  run-months-batched setup-dbt run-dbt stream pipeline\
+		clean-auth clean-tf clean
 
 
 
@@ -123,6 +123,7 @@ plan: bootstrap generate_vars init
 	@echo "" >> $(GCP_LOG)
 	terraform -chdir=$(TF_DIR) plan -out=tfplan >> $(GCP_LOG) 2>&1
 
+# 'apply' Runs the entire environment -> cloud foundation -> terraform
 apply: plan
 	@echo "Applying Infrastructure Changes"
 	@echo "" >> $(GCP_LOG)
@@ -145,7 +146,6 @@ run: auth-check
 	@echo "----------------------------------------------------------" >> $(GCP_LOG)
 	@echo "" >> $(GCP_LOG)
 	@gcloud config set auth/impersonate_service_account $(TF_SA_EMAIL) >> $(GCP_LOG) 2>&1
-	@#gcloud config unset auth/impersonate_service_account
 
 
 # Trigger batch run to ingest data
@@ -205,8 +205,14 @@ stream:
 	@echo "Launching Vendor Performance Dashboard"
 	@streamlit run $(STREAM_APP)
 
+# This runs auth -> data ingestion -> dbt transformation -> dashboard
+pipeline: run run-months-batched setup-dbt run-dbt stream
+
 
 # *CLEANUP*
+
+clean-auth:
+	@gcloud config unset auth/impersonate_service_account
 
 clean-tf:
 	rm -rf $(TF_DIR)/.terraform
