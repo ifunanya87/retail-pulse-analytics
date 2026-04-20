@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: int_iowa_liquor__sales_core
+    description: "Core sales data with refined geography and stripped metadata."
+    columns:
+      - name: invoice_id
+        tests:
+          - unique
+          - not_null
+
+      - name: transaction_date
+        tests:
+          - not_null
+
+      - name: city
+        description: "Refined city name, should never be null."
+        tests:
+          - not_null
+          # Ensures COALESCE logic worked
+          - dbt_utils.not_empty_string 
+
+      - name: sale_dollars
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0

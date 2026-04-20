@@ -22,6 +22,8 @@ dependencies = [
     "jupyter>=1.1.1",
     "gcsfs>=2025.12.0",
     "fsspec>=2025.12.0",
+    "seaborn>=0.13.2",
+    "matplotlib>=3.10.8",
 ]
 
 [tool.setuptools.packages.find]

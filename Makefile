@@ -13,7 +13,7 @@ DBT_DIR := src/transformation/dbt_project
 .PHONY: all info  setup \
 		auth-check set-quota enable-apis bootstrap \
 		generate_vars init plan apply output \
-		run  run-months-batched setup_dbt stg test \
+		run  run-months-batched setup-dbt run-dbt \
 		clean-tf clean
 
 
@@ -185,15 +185,23 @@ run-months-batched:
 	@echo "===All Batches Finished==="
 
 
-setup_dbt:
+setup-dbt:
 	@chmod +x scripts/setup_dbt.sh
 	@./scripts/setup_dbt.sh
 
-stg:
-	dbt run --project-dir $(DBT_DIR) --select stg_iowa_liquor__sales
+run-dbt:
+	@set -e; \
+	echo "Running dbt deps..."; \
+	dbt deps --project-dir $(DBT_DIR); \
+	echo "Running dbt seed..."; \
+	dbt seed --project-dir $(DBT_DIR); \
+	echo "Running dbt full refresh..."; \
+	dbt run --full-refresh --project-dir $(DBT_DIR); \
+	echo "Running dbt tests..."; \
+	dbt test --project-dir $(DBT_DIR)
 
-test:
-	dbt test --project-dir $(DBT_DIR) --select stg_iowa_liquor__sales
+
+
 
 # *CLEANUP*
 

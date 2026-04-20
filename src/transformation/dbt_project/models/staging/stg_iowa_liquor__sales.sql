@@ -13,11 +13,11 @@ renamed_and_cast as (
         invoice_line_no as invoice_id,
         date as transaction_date,
         store as store_id,
-        upper(name) as store_name, 
-        city,
-        upper(county) as county, 
-        category_name,
-        vendor_name,
+        upper(trim(name)) as store_name, 
+        upper(trim(city)) as city,
+        upper(trim(county)) as county,
+        upper(trim(category_name)) as category_name,
+        upper(trim(vendor_name)) as vendor_name,
         
         -- Safe casting strings to numbers to prevent run failures on malformed data
         safe_cast(bottle_volume_ml as float64) as bottle_volume_ml,
