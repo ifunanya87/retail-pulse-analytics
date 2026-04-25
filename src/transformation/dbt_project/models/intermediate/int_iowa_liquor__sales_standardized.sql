@@ -8,11 +8,13 @@
 */
 
 {{ config(
-    materialized='table',
+    materialized='incremental',
+    unique_key=['invoice_id', 'item_id'],
+    incremental_strategy='merge',
     partition_by={
       "field": "transaction_date",
       "data_type": "date",
-      "granularity": "month"
+      "granularity": "day"
     },
     cluster_by=["vendor_name_standardized", "category_group"]
 ) }}
@@ -21,22 +23,33 @@
 with base as (
     select
         *,
-        -- Replace any delimiter (/ or ;) with a single pipe |
-        -- Split by that pipe
-        -- Take the first part [safe_offset(0)]
-        split(
-            regexp_replace(upper(trim(vendor_name)), r'[/;]', '|'), 
-            '|'
-        )[safe_offset(0)] as vendor_name_clean
+        {{ normalize_string('vendor_name') }} as vendor_key,
+        {{ normalize_string('category_name') }} as category_key
     from {{ ref('int_iowa_liquor__sales_core') }} 
+
+    {% if is_incremental() %}
+        where transaction_date >= (
+            select date_sub(max(transaction_date), interval 10 day)
+            from {{ this }}
+        )
+    {% endif %}
 ),
 
 vendor_mapping as (
-    select * from {{ ref('vendor_mapping') }}
+    select
+        *,
+        -- Prepare the join key on the mapping side
+        {{ normalize_string('raw_vendor_name') }} as mapping_key
+    from {{ ref('vendor_mapping') }}
 ),
 
 category_mapping as (
-    select * from {{ ref('category_mapping') }}
+    select
+        {{ normalize_string('raw_category_name') }} as mapping_key,
+        canonical_category,
+        category_group,
+        spirit_type
+    from {{ ref('category_mapping') }}
 ),
 
 standardized as (
@@ -45,25 +58,34 @@ standardized as (
 
         -- Vendor Standardization
         coalesce(
-            vm.canonical_vendor_name,
-            {{ cleanup_vendor_name('b.vendor_name_clean') }}
+            vm.canonical_vendor_name, 
+            b.vendor_name
         ) as vendor_name_standardized,
 
+        -- THE AUDIT COLUMN
+        vm.canonical_vendor_name as vendor_mapping_match,
+
         -- Category Standardization
-        b.category_name as category_name_raw,
-        coalesce(cm.canonical_category, 'OTHER') as category_name_standardized,
+        coalesce(
+            cm.canonical_category, 
+            b.category_name 
+        ) as category_name_standardized,
+
+        -- THE AUDIT COLUMN
+        cm.canonical_category as category_mapping_match,
+        
+        -- Mapping metadata (with default fallbacks)
         coalesce(cm.category_group, 'OTHER') as category_group,
         coalesce(cm.spirit_type, 'OTHER') as spirit_type
 
     from base b
 
     -- Vendor Mapping
-    left join vendor_mapping vm
-        on b.vendor_name_clean = upper(trim(vm.raw_vendor_name))
-        
-    -- Category Mapping
+    left join vendor_mapping vm 
+        on b.vendor_key = vm.mapping_key
+    -- Category Mapping    
     left join category_mapping cm
-        on upper(trim(b.category_name)) = upper(trim(cm.raw_category_name))
+        on b.category_key = cm.mapping_key
 )
 
 select * from standardized

@@ -7,17 +7,26 @@
 */
 
 {{ config(
-    materialized='table',
+    materialized='incremental',
+    unique_key='invoice_id',
+    incremental_strategy='merge',
     partition_by={
       "field": "transaction_date",
       "data_type": "date",
-      "granularity": "month"
+      "granularity": "day"
     },
     cluster_by=["vendor_name", "county"]
 ) }}
 
 with sales as (
     select * from {{ ref('stg_iowa_liquor__sales') }}
+
+    {% if is_incremental() %}
+        where transaction_date >= (
+            select date_sub(max(transaction_date), interval 10 day)
+            from {{ this }}
+        )
+    {% endif %}
 ),
 
 geography as (
@@ -28,35 +37,42 @@ final as (
     select
         -- Identifiers
         s.invoice_id,
-        
-        -- Normalize transaction_date to DATE for downstream stability
-        date(s.transaction_date) as transaction_date,
-        
         s.store_id,
-        s.store_name,
+        s.vendor_id,
+        s.item_id,
         
-        -- Classify sales
-        {{ classify_transaction('s.sale_dollars') }} as transaction_type,
-        {{ is_return('s.sale_dollars') }} as is_return,
-
+        -- Temporal
+        s.transaction_date,
+        
         -- Geography
         g.city,
         g.county,
         
         -- Descriptive Attributes
+        s.store_name,
         s.category_name,
         s.vendor_name,
+        s.item_description,
         
+        -- Business Logic
+        {{ classify_transaction('s.revenue') }} as transaction_type,
+        {{ is_return('s.revenue') }} as is_return,
+
         -- Metrics
+        s.pack_size,
+        s.bottle_volume_ml,
         s.state_bottle_cost,
         s.state_bottle_retail,
-        s.sale_bottles,
-        s.sale_dollars,
-        s.sale_liters
+        s.bottles_sold,
+        s.revenue,
+        s.volume_liters_sold,
+        s.volume_gallons_sold
 
     from sales s
-    -- Join on invoice_id to get the 'UNKNOWN' versions of city/county
-    left join geography g on s.invoice_id = g.invoice_id
+    -- Left join
+    left join geography g 
+        on s.invoice_id = g.invoice_id 
+        and s.transaction_date = g.transaction_date
 )
 
 select * from final

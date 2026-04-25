@@ -5,24 +5,48 @@
     
     Description: 
     - Standardizes geography columns by handling nulls in City and County fields.
-    - Implements a 'COALESCE' strategy to replace missing values with 'UNKNOWN' for consistent grouping in downstream analytics.
-    - Serves as the primary source for geography-based Marts (Gold layer).
+    - Retains only necessary columns (invoice_id, city, county).
+    - Incrementally processes new/updated records for efficiency.
 */
 
 {{ config(
-    materialized='view'
+    materialized='incremental',
+    unique_key='invoice_id',
+    incremental_strategy='merge',
+     partition_by={
+      "field": "transaction_date",
+      "data_type": "date",
+      "granularity": "day"
+    },
 ) }}
 
 with staging as (
-    select * from {{ ref('stg_iowa_liquor__sales') }}
+
+    select
+        invoice_id,
+        city,
+        county,
+        transaction_date
+    from {{ ref('stg_iowa_liquor__sales') }}
+
+    {% if is_incremental() %}
+        where transaction_date >= (
+            select date_sub(max(transaction_date), interval 10 day)
+            from {{ this }}
+        )
+    {% endif %}
+
 ),
 
 refined as (
+
     select
-        * except(city, county), -- Keep everything else
+        invoice_id,
+        transaction_date,
         coalesce(city, 'UNKNOWN') as city,
         coalesce(county, 'UNKNOWN') as county
     from staging
+
 )
 
 select * from refined

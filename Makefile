@@ -13,7 +13,7 @@ STREAM_APP := src/visualization/streamlit-dashboard.py
 .PHONY: all info  setup \
 		auth-check set-quota enable-apis bootstrap \
 		generate_vars init plan apply output \
-		run  run-months-batched setup-dbt run-dbt stream pipeline\
+		run  run-months-batched setup-dbt run-dbt dbt-comp stream pipeline\
 		clean-auth clean-tf clean-logs clean destroy
 
 
@@ -191,6 +191,8 @@ setup-dbt:
 
 run-dbt:
 	@set -e; \
+	echo "Deleting stale target and log folders"; \
+	rm -rf $(DBT_DIR)/target $(DBT_DIR)/logs; \
 	echo "Running dbt deps..."; \
 	dbt deps --project-dir $(DBT_DIR); \
 	echo "Running dbt seed..."; \
@@ -200,6 +202,8 @@ run-dbt:
 	echo "Running dbt tests..."; \
 	dbt test --project-dir $(DBT_DIR)
 
+dbt-comp:
+	dbt compile --project-dir $(DBT_DIR)
 
 stream:
 	@echo "Launching Vendor Performance Dashboard"

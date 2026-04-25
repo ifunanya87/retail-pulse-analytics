@@ -7,6 +7,8 @@
     - Materialized as a view for real-time analysis on top of the fact table.
 */
 
+{{ config(enabled=false) }}
+
 {{ config(materialized='view') }}
 
 with base_metrics as (

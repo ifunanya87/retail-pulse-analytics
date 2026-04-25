@@ -1,19 +1,15 @@
 /*
-    Analysis: Unmapped Category Audit
-    Layer: Quality Assurance / Maintenance
+    Analysis: Category Mapping Gap Analysis
     Description:
-    - Identifies 'raw_category_names' from the source data that do not exist in the 'category_mapping' seed.
-    - Resulting rows show as 'OTHER' in the standardized model.
-    - Purpose: Use this to maintain 100% mapping coverage. Any result from this query 
-      should be copied and added to 'seeds/category_mapping.csv'.
-    - Usage: Run this periodically or after a new data refresh from the state of Iowa.
+    - Finds raw categories that failed the join to the category_mapping seed.
+    - Highlights the volume (occurrences) to help prioritize which categories to map first.
 */
 
 select 
-    category_name_raw, 
-    category_name_standardized,
-    count(*) as occurrences
+    category_name_standardized as category_fallback_name,
+    count(*) as occurrences,
+    round(sum(revenue), 2) as unmapped_revenue
 from {{ ref('int_iowa_liquor__sales_standardized') }}
-where category_name_standardized = 'OTHER'
-group by 1, 2
-order by occurrences desc
+where category_mapping_match is null -- Catches the "misses"
+group by 1
+order by unmapped_revenue desc

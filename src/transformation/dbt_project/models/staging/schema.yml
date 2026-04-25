@@ -20,17 +20,64 @@ models:
         data_tests:
           - not_null
 
-      - name: sale_dollars
-        description: "The total dollar amount of the sale (casted to float64)."
+      - name: vendor_id
+        description: "The unique ID for the vendor."
+
+      - name: item_id
+        description: "The unique ID for the item (liquor product)."
+
+      - name: store_name
+        description: "Cleaned store name in uppercase."
+
+      - name: city
+        description: "City where the store is located."
+
+      - name: county
+        description: "County where the store is located."
+
+      - name: category_name
+        description: "Category of the liquor."
+
+      - name: vendor_name
+        description: "Name of the vendor."
+
+      - name: item_description
+        description: "Description of the liquor item."
+
+      - name: pack_size
+        description: "Number of bottles in a case."
+
+      - name: bottle_volume_ml
+        description: "Volume of a single bottle in milliliters."
+
+      - name: state_bottle_cost
+        description: "Cost the state paid for the bottle."
+
+      - name: state_bottle_retail
+        description: "Price the store paid for the bottle."
+
+      - name: bottles_sold
+        description: "Number of bottles sold (renamed from sale_bottles)."
         data_tests:
           - not_null
 
-      - name: sale_bottles
-        description: "Number of bottles sold (casted to int64)."
+      - name: revenue
+        description: "The total dollar amount of the sale (renamed from sale_dollars)."
+        data_tests:
+          - not_null
+
+      - name: volume_liters_sold
+        description: "Total volume sold in liters."
+
+      - name: volume_gallons_sold
+        description: "Total volume sold in gallons."
 
       - name: _dlt_id
         description: "Metadata ID from the DLT ingestion process."
         data_tests:
           - unique
           - not_null
-          
+
+      - name: _dlt_load_id
+        description: "Metadata Load ID to track ingestion batches."
+        

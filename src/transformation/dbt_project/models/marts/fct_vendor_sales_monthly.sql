@@ -8,6 +8,8 @@
     - Serves as the primary physical source for the Semantic/Reporting layer.
 */
 
+{{ config(enabled=false) }}
+
 {{
     config(
         materialized='incremental',

@@ -5,24 +5,42 @@ models:
     description: "Core sales data with refined geography and stripped metadata."
     columns:
       - name: invoice_id
-        tests:
+        description: "Primary key for the sales table."
+        data_tests:
           - unique
           - not_null
 
       - name: transaction_date
-        tests:
+        description: "The date of the transaction (Date type)."
+        data_tests:
           - not_null
 
       - name: city
         description: "Refined city name, should never be null."
-        tests:
+        data_tests:
           - not_null
-          # Ensures COALESCE logic worked
+          # Ensures COALESCE logic in geography_refined worked
           - dbt_utils.not_empty_string 
 
-      - name: sale_dollars
-        description: "Total dollar amount of the transaction; can be negative for returns."
-        tests:
+      - name: revenue
+        description: "Total dollar amount of the transaction (renamed from sale_dollars); can be negative for returns."
+        data_tests:
+          - not_null
           - dbt_expectations.expect_column_values_to_be_between:
               min_value: -100000  # Allows for large returns/adjustments
               max_value: 500000   # Protects against extreme outliers/fat-finger errors
+
+      - name: bottles_sold
+        description: "Number of bottles sold (renamed from sale_bottles)."
+        data_tests:
+          - not_null
+
+      - name: volume_liters_sold
+        description: "Total volume sold in liters."
+        
+      - name: transaction_type
+        description: "Classification of transaction (e.g., High Value, Standard) via macro."
+
+      - name: is_return
+        description: "Boolean flag indicating if the transaction was a return (revenue < 0)."
+        
