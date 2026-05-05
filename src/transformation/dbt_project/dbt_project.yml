@@ -15,22 +15,33 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+# Snapshot routing
+snapshots:
+  dbt_project:
+    +target_schema: liquor_snapshots
 
 models:
   dbt_project:
-    +materialized: table 
+    +materialized: view 
 
     staging:
-      +materialized: table
+      +materialized: view
       +schema: liquor_silver
 
     intermediate:
       +materialized: table
       +schema: liquor_silver
 
+    dimensions:
+      +materialized: table
+      +schema: liquor_silver
+
     marts:
+      +materialized: table
       +schema: liquor_gold
-      +materialized: table 
       
       reporting:
         +materialized: view
+
+vars:
+  default_unknown_string: "UNASSIGNED"

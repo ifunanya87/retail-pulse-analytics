@@ -1,9 +1,13 @@
 /*
     Model: fct_sales_performance
     Layer: Gold (Marts)
-    Description: 
-    - The central fact table for all liquor sales analysis.
-    - Aggregated at the Transaction (Invoice) grain.
+
+    Description:
+    - Central fact table representing state-level liquor distribution transactions
+    - Atomic grain: one row per invoice (transaction event)
+    - Serves as the system-of-record for downstream analytical marts (category, vendor, store)
+    - Captures distribution flows across vendors, product categories, and retail endpoints
+    - Designed as a foundation layer for aggregation, time-series analysis, and market intelligence modeling
 */
 
 {{ config(

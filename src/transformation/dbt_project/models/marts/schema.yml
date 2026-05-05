@@ -1,0 +1,70 @@
+version: 2
+
+models:
+
+  - name: agg_category_monthly_performance
+    tests:
+      - revenue_reconciliation:
+          fact_model: ref('fct_sales_performance')
+          fact_time_column: transaction_date
+          model_time_column: sales_month
+          grain_columns: ['category_name_standardized', 'category_group']
+
+  - name: agg_vendor_monthly_performance
+    tests:
+      - revenue_reconciliation:
+          fact_model: ref('fct_sales_performance')
+          fact_time_column: transaction_date
+          model_time_column: sales_month
+          grain_columns: ['vendor_name_standardized']
+
+      - grid_completeness:
+          fact_model: ref('fct_sales_performance')
+          dimension_column: vendor_name_standardized
+          model_time_column: sales_month
+          fact_time_column: transaction_date
+
+  - name: agg_county_monthly_performance
+    tests:
+      - revenue_reconciliation:
+          fact_model: ref('fct_sales_performance')
+          fact_time_column: transaction_date
+          model_time_column: sales_month
+          grain_columns: ['county']
+
+      - grid_completeness:
+          fact_model: ref('fct_sales_performance')
+          dimension_column: county
+          model_time_column: sales_month
+          fact_time_column: transaction_date
+
+      - no_null_metrics:
+          columns: ['total_revenue', 'total_volume']
+
+
+  - name: agg_store_performance
+
+    columns:
+      - name: store_id
+        tests:
+          - unique
+          - not_null
+
+    tests:
+      - dimension_coverage:
+          dimension_model: ref('dim_store')
+          key_column: store_id
+
+      - no_null_metrics:
+          columns:
+            - total_revenue
+            - total_transactions
+
+      - no_negative_values:
+          columns:
+            - total_revenue
+            - total_bottles_sold
+            - total_volume_liters
+
+      - churn_logic: {}
+    

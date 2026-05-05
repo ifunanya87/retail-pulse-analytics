@@ -36,3 +36,8 @@ variable "dataset_gold" {
   description = "Dataset ID for business-ready analytical marts"
   type        = string
 }
+
+variable "dataset_snapshots" {
+  description = "Dataset for Storing historical versions of dimension tables"
+  type        = string
+}

@@ -33,6 +33,11 @@ output "gold_dataset_id" {
   value       = google_bigquery_dataset.gold.dataset_id
 }
 
+output "snapshots_dataset_id" {
+  description = "BigQuery Snapshots dataset ID"
+  value       = google_bigquery_dataset.snapshots.dataset_id
+}
+
 
 # Fully Qualified Dataset References
 output "bronze_dataset_fqdr" {
@@ -48,4 +53,9 @@ output "silver_dataset_fqdr" {
 output "gold_dataset_fqdr" {
   description = "Fully qualified Gold dataset"
   value       = "${var.project_id}.${google_bigquery_dataset.gold.dataset_id}"
+}
+
+output "snapshots_dataset_fqdr" {
+  description = "Fully qualified Snapshots dataset"
+  value       = "${var.project_id}.${google_bigquery_dataset.snapshots.dataset_id}"
 }

@@ -43,8 +43,8 @@ refined as (
     select
         invoice_id,
         transaction_date,
-        coalesce(city, 'UNKNOWN') as city,
-        coalesce(county, 'UNKNOWN') as county
+        coalesce(city, '{{ var("default_unknown_string") }}') as city,
+        coalesce(county, '{{ var("default_unknown_string") }}') as county
     from staging
 
 )

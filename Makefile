@@ -104,6 +104,7 @@ generate_vars:
 	@echo 'dataset_bronze     = "$(BQ_DATASET_BRONZE)"' >> $(TF_DIR)/temp.auto.tfvars
 	@echo 'dataset_silver     = "$(BQ_DATASET_SILVER)"' >> $(TF_DIR)/temp.auto.tfvars
 	@echo 'dataset_gold       = "$(BQ_DATASET_GOLD)"' >> $(TF_DIR)/temp.auto.tfvars
+	@echo 'dataset_snapshots  = "$(BQ_DATASET_SNAPSHOTS)"' >> $(TF_DIR)/temp.auto.tfvars
 
 init:
 	@mkdir -p log
@@ -196,6 +197,8 @@ run-dbt:
 	echo "Running dbt deps..."; \
 	dbt deps --project-dir $(DBT_DIR); \
 	echo "Running dbt seed..."; \
+	echo "Running dbt snapshots..."; \
+    dbt snapshot --project-dir $(DBT_DIR); \
 	dbt seed --project-dir $(DBT_DIR); \
 	echo "Running dbt full refresh..."; \
 	dbt run --full-refresh --project-dir $(DBT_DIR); \
