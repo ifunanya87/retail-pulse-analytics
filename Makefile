@@ -7,7 +7,7 @@ VENV := .venv
 PYTHON := uv run python3
 TF_DIR := terraform
 DBT_DIR := src/transformation/dbt_project
-STREAM_APP := src/visualization/streamlit-dashboard.py
+STREAM_APP := src/visualization/app.py
 
 
 .PHONY: all info  setup \

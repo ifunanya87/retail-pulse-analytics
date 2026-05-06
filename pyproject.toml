@@ -9,10 +9,8 @@ dependencies = [
     "dagster-pipes>=1.13.0",
     "dagster-webserver>=1.13.0",
     "dlt[gs]>=1.25.0",
-    # "google-cloud-storage>=3.10.1",
     "pandas>=3.0.2",
     "pyarrow>=23.0.1",
-    # "python-dotenv>=1.2.2",
     "google-cloud-storage",
     "python-dotenv",
     "requests>=2.28.0,<2.32.0",
@@ -28,6 +26,8 @@ dependencies = [
     "google-cloud-bigquery>=3.41.0",
     "db-dtypes>=1.4.4",
     "plotly>=6.7.0",
+    "scikit-learn>=1.8.0",
+    "google-cloud-bigquery-storage>=2.37.0",
 ]
 
 [tool.setuptools.packages.find]
