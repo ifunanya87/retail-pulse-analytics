@@ -71,13 +71,14 @@ auth-check:
 	@echo "Auth complete. The logged identity is recorded in $(GCP_LOG)"
 	@echo "----------------------------------------------------------------"
 	@$(MAKE) --no-print-directory set-quota
+	@$(MAKE) enable-apis
 
 set-quota:
 	@echo "=== Syncing Config for $(REPO_PROJECT_NAME) ==="
 	@gcloud config set project $(GCP_PROJECT_ID) >> $(GCP_LOG) 2>&1
 	@gcloud auth application-default set-quota-project $(GCP_PROJECT_ID) >> $(GCP_LOG) 2>&1
 
-enable-apis: auth-check
+enable-apis:
 	@echo "Enabling Bootstrap APIs"
 	@gcloud services enable \
 		cloudresourcemanager.googleapis.com \
@@ -86,7 +87,7 @@ enable-apis: auth-check
 	@echo "APIs enabled. Waiting 30s for propagation"
 	@sleep 30
 
-bootstrap: setup enable-apis
+bootstrap: setup auth-check
 	@if [ ! -f .bootstrap_done ]; then \
 		echo "Creating Terraform State Bucket"; \
 		$(PYTHON) -m utils.bootstrap_state && touch .bootstrap_done; \
@@ -208,18 +209,39 @@ run-dbt:
 dbt-comp:
 	dbt compile --project-dir $(DBT_DIR)
 
+
+# This runs auth -> data ingestion -> dbt transformation -> dashboard
+pipeline: run run-months-batched setup-dbt run-dbt
+	@echo "Launching Iowa Liquor Dashboard..."
+	-@$(MAKE) stream
+	@$(MAKE) clean
+
 stream:
 	@echo "Launching Vendor Performance Dashboard"
 	@streamlit run $(STREAM_APP)
 
-# This runs auth -> data ingestion -> dbt transformation -> dashboard
-pipeline: run run-months-batched setup-dbt run-dbt stream
-
 
 # *CLEANUP*
 
+destroy: auth-check
+	@echo "Destroying Infrastructure (DANGEROUS)"
+	@read -p "Are you sure you want to destroy all resources? [y/N] " confirm; \
+	if [ "$$confirm" = "y" ]; then \
+		terraform -chdir=$(TF_DIR) destroy -auto-approve; \
+		$(MAKE) clean-logs; \
+		$(MAKE) clean; \
+	else \
+		echo "Destroy cancelled."; \
+	fi
+
+clean-logs:
+	rm -rf log/*
+
 clean-auth:
 	@gcloud config unset auth/impersonate_service_account
+	@gcloud auth revoke --all || true
+	@rm -f ~/.config/gcloud/application_default_credentials.json
+	@rm -f ~/.config/gcloud/credentials.db
 
 clean-tf:
 	rm -rf $(TF_DIR)/.terraform
@@ -227,19 +249,8 @@ clean-tf:
 	rm -f $(TF_DIR)/temp.auto.tfvars
 	rm -f .bootstrap_done
 
-clean-logs:
-	rm -rf log/*
 
-clean: clean-auth clean-tf clean-logs
+clean: clean-auth clean-tf
 	rm -rf $(VENV)
 	rm -f infra_outputs.json
 	@echo "Environment wiped (local only)."
-
-destroy: auth-check
-	@echo "Destroying Infrastructure (DANGEROUS)"
-	@read -p "Are you sure you want to destroy all resources? [y/N] " confirm; \
-	if [ "$$confirm" = "y" ]; then \
-		terraform -chdir=$(TF_DIR) destroy -auto-approve; \
-	else \
-		echo "Destroy cancelled."; \
-	fi

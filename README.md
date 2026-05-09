@@ -2,59 +2,197 @@
 
 An end-to-end data engineering project analyzing wholesale liquor consumption and retail trends in Iowa using a Medallion Architecture.
 
----
-
 ## Problem Description
 
-This project builds an automated pipeline to transform raw transaction data from Iowa's "controlled state" system into actionable business intelligence. The primary goals are:
+This project implements a production-grade Medallion architecture to transform Iowa’s liquor transaction data into a multi-dimensional market intelligence platform. Rather than stopping at aggregation, the system builds a structured analytical layer that explains why performance changes across time, geography, vendors, and product categories.
 
-- **Market Share Analysis:** Quantify vendor dominance across specific spirit categories (e.g., Whiskey vs. Tequila).
-- **Risk Mitigation:** Identify operational anomalies where vendors exhibit statistically significant return rates compared to the market average.
-- **Growth Tracking:** Visualize revenue trends to determine if the market is shifting toward premiumization or high-volume economy brands.
-- **Operational Reproducibility:** Provide a 1-click execution environment (make pipeline) using Infrastructure as Code (Terraform) and modern orchestration (Dagster).
+It delivers five core analytical lenses:
+
+
+### 1. Market Structure & Power Dynamics
+
+Identify dominant vendors, market concentration, and shifts in competitive control using:
+
+- revenue_share  
+- hhi_index  
+
+from vendor and county aggregated marts.
+
+
+### 2. Geographic & Operational Intelligence
+
+Analyze county and store-level performance to uncover demand clusters, distribution gaps, and early signals of store underperformance using:
+
+- total_revenue  
+- mom_growth_pct  
+- hhi_index  
+- churn_risk_flag (store-level signal from Gold mart)  
+
+
+### 3. Product Behavior & Seasonality
+
+Track category-level trends using:
+
+- total_revenue  
+- yoy_growth_pct  
+- seasonal_index  
+
+to distinguish structural growth from cyclical demand patterns.
+
+### 4. Revenue Efficiency & Pricing Power
+
+Evaluate monetization efficiency across categories, vendors, and stores using:
+
+- total_revenue  
+- total_volume  
+- avg_order_value  
+- revenue_per_active_day  
+
+This reveals whether growth is driven by volume expansion or pricing efficiency, highlighting premium vs mass-market behavior.
+
+### 5. Market Momentum & Acceleration
+
+Compare:
+
+- mom_growth_pct  
+- yoy_growth_pct  
+
+to detect:
+
+- accelerating growth segments  
+- decelerating categories  
+- early-stage expansion signals  
+
+This enables forward-looking demand intelligence rather than static reporting.
+
+---
+
+## Data-as-Code Philosophy
+
+The platform is built using a modern, reproducible data stack:
+
+- Terraform → reproducible infrastructure  
+- Dagster → orchestrated data workflows  
+- dbt → modular, testable transformation layer  
+
+---
+
+## Solution Architecture
+
+I designed a Medallion Architecture (Bronze → Silver → Gold) to progressively refine data into business-ready insights.
+
+For deep dives into technical implementation, refer to:
+
+* [**Technical Architecture & Deep Dive**](./documentation/TECHNICAL_DETAILS.md)
 
 ---
 
 ## Data Insights & Results
 
-Based on the analysis of the Jan 2025 – June 2025 data scope, the following results were generated:
-
-### 1. Performance Overview
-
-- **Total Sales Revenue:** $203,163,494.  
-  The market shows a steady upward trend from January through May, indicating strong consumer demand.
-
-- **Actual Return Rate:** 0.09%.  
-  While low, the "Actual" rate is used as a baseline to identify outliers.
-
-- **Avg Market Share:** 2.85%.  
-  This metric helps identify "Category Dominance," where top vendors significantly outperform the mean.
+Analysis was conducted on **Jan 2025 – June 2025**, focusing on normalized trends, distribution patterns, market structure, operational efficiency, and forward-looking market signals.
 
 ---
 
-### 2. Category & Vendor Trends
+### 1. Market Performance & Growth Dynamics
 
-- **Whiskey Dominance:** Whiskey remains the highest revenue category by a significant margin (approx. $65M+), followed by Vodka.
+* **Total Sales Revenue:** $202,975,123  
+* **Total Volume (Liters):** 10,732,491  
+* **Avg Unit Price:** $20.45  
 
-- **Market Leaders:** Diageo Americas and Sazerac Company lead the market in total revenue, both exceeding $35M in sales during the period.
+The market shows steady growth through Q2, supported by both increasing sales revenue and strong product volume. The **Revenue Trend (Daily vs. 7-Day Moving Average)** helps smooth out short-term fluctuations and shows that the upward trend is fairly consistent over time instead of being caused by a few isolated spikes.
 
-- **Emerging Segments:** Liqueurs and Tequila show substantial mid-market volume, outpacing Gin and Brandy.
+Revenue growth also remains strong while average pricing stays relatively stable, which suggests that the increase is being driven more by customer demand and product mix performance than by price inflation alone.
 
 ---
 
-### 3. Anomaly Detection (The "Redline" Report)
+### 2. Category Intelligence (Demand vs. Seasonality)
 
-- **Anomaly Count:** The system identified 156 anomalies requiring investigation.
+* **Whiskey (Structural Anchor):** Identified as the Top Performing Category with an Avg MoM Growth of 5.05%.  
+* **Vodka (Stable Core):** Functions as the second-largest revenue pillar with high volume and low volatility.  
+* **Growth Quality Insight:** The Category MoM Growth Heatmap identifies specific acceleration periods, with categories like "Special" and "Mezcal" showing high-intensity growth bursts.  
 
-- **Statistical Outliers:** Using a scatter plot mapping Revenue vs. Return Rate, we identified several vendors with return rates exceeding 15% - 30% despite having lower sales volumes.
+The category analysis shows a mix of stable high-volume products and smaller fast-growing segments. Whiskey stands out because it combines strong sales volume with consistent month-over-month growth, while Vodka remains one of the more stable categories with lower volatility.
 
-  **What this means:** These vendors represent high operational risk. By flagging these, distributors can investigate product quality issues or shipping errors before they impact the bottom line of high-volume leaders like Diageo.
+Smaller categories such as "Special" and "Mezcal" show sharper growth increases during certain periods, which may indicate changing customer preferences or growing interest in premium products. Even though these categories are smaller, their growth patterns could become more important over time if the trend continues.
+
+---
+
+### 3. Vendor Landscape & Market Concentration
+
+* **Top Vendors:** Diageo Americas and Sazerac Company dominate the revenue share.  
+* **Concentration Insight:** A Market Concentration (HHI) of 0.096 confirms a moderately concentrated supplier market.  
+* **Long-Tail Structure:** The cumulative revenue curve illustrates that while a small number of vendors control the majority of revenue, a fragmented supplier ecosystem exists in the long tail.  
+
+The vendor landscape shows that a few large suppliers control a major portion of total revenue, while many smaller vendors still contribute to the broader market. The HHI value suggests the market is moderately concentrated rather than fully dominated by only a handful of companies.
+
+The long-tail structure also highlights the complexity of the supplier ecosystem, since many smaller vendors collectively still account for a noticeable share of the market despite having lower individual sales volumes.
+
+---
+
+### 4. Geographic & Store-Level Performance
+
+* **County Variability:** Polk County stands as the leading revenue contributor in the state.  
+* **Market Coverage:** The pipeline successfully processes data across 99/99 Iowa counties with a minimal Revenue Attribution Leakage of 0.03%.  
+* **Store Segmentation:** Using K-Means clustering, the system segments 2,125 active stores into performance tiers based on revenue and volume.  
+
+The geographic analysis shows that demand is not evenly distributed across the state, with Polk County contributing the highest revenue overall. Processing all 99 counties with very low attribution leakage also confirms that the pipeline maintains strong coverage and data consistency.
+
+The K-Means clustering model groups stores into different performance levels based on sales behavior and volume. This makes it easier to identify high-performing stores, mid-tier stores, and stores that may require closer operational review.
+
+---
+
+### 5. Risk & Operational Signals
+
+* **Store Risk:** The system identified 1,566 High Risk Stores (labeled as -Critical).  
+* **Underperforming Store List:** The Gold layer generates a variance-based list, highlighting stores like "Fareway Stores #941" and "Casey's General Store #3220" that significantly deviate from expected performance.  
+
+The risk analysis focuses on stores that perform below expected patterns rather than simply looking at low revenue alone. By measuring performance variance, the system can highlight locations that may be affected by declining demand, operational inefficiencies, or regional market pressure.
+
+The relatively high number of high-risk stores suggests that performance instability is spread across many parts of the retail network rather than being limited to only a few stores.
+
+---
+
+### 6. Revenue Efficiency & Pricing Power
+
+* **Portfolio Efficiency:** The system calculates an Avg Portfolio Efficiency of $21.91/L.  
+* **Store-Level Efficiency:** Top 10 rankings reveal highly efficient outliers, such as Hy-Vee Fast & Fresh Express - Osceola, which generates $629.92/L, indicating high-margin product mixes.  
+
+The efficiency analysis measures how effectively stores convert product volume into revenue. While the overall portfolio efficiency remains fairly stable, some stores generate much higher revenue per liter than others.
+
+These outlier stores may be benefiting from premium product mixes, stronger local demand, or more optimized inventory selection. Identifying these patterns can help explain where pricing power and higher-margin performance are strongest.
+
+---
+
+### 7. Market Momentum & Acceleration
+
+* **Momentum Identification:** Using MoM Growth %, we identify "Special" and "Rum" as top-growing categories.  
+* **Acceleration Heatmap:** This visualization enables forward-looking intelligence by tracking the velocity of growth across different sales months.  
+
+The momentum analysis focuses more on growth speed than total market size. Categories with strong acceleration may become more important over time even if they are not currently the largest contributors to total revenue.
+
+The acceleration heatmap helps track when growth is increasing or slowing down across different periods, making it easier to spot emerging trends and changing market behavior earlier.
+
+---
+
+### Key Takeaway
+
+This system transforms raw liquor transaction data into a scalable Retail Intelligence Platform, where:
+
+* Vendors are analyzed through revenue share concentration and HHI-based market structure metrics.  
+* Categories are evaluated through seasonality, normalized growth trends, and acceleration behavior.  
+* Stores are segmented using behavioral clustering, revenue efficiency, and variance-based risk analysis.  
+* Counties expose geographic demand concentration across all 99 Iowa regions.  
+* Momentum Layers provide forward-looking intelligence capable of identifying emerging commercial trends before full market maturation.  
+
+Overall, the platform goes beyond basic reporting by combining scalable data engineering with analytical models that help explain market behavior across vendors, categories, stores, and geographic regions.
+
+All insights are derived strictly from Gold marts and minimal Silver dimensions (`dim_store`, `dim_date`), ensuring reproducibility, governance consistency, and BI-grade analytical reliability.
 
 ---
 
 ## Analytics Dashboard
 
-![Iowa Liquor Sales Executive Summary](./images/IowaLiquorVendorPerformance.png)
+![Iowa Liquor Sales Executive Summary]()
 ---
 
 ## Tech Stack
@@ -72,61 +210,6 @@ Based on the analysis of the Jan 2025 – June 2025 data scope, the following re
 
 ---
 
-## Architecture
-
-The pipeline follows a **Medallion Architecture pattern**:
-
-- **Infrastructure:** Provisioned via Terraform.
-- **Extract (Bronze):** Pulls 6 months of data from the SOCRATA API via dlt + dagster.
-- **Load (Silver):** Initial cleaning and deduplication in BigQuery.
-- **Transform (Gold):** dbt applies window functions to calculate Category Dominance Index, Rankings, and 95th Percentile Anomaly Flags.
-- **Visualize:** Streamlit renders three tabs: Performance Overview, Category Trends, and the Anomaly Report.
-
----
-
-## Data Warehouse Optimization
-
-To ensure high performance and sub-second dashboard responsiveness despite 5+ years of transaction history, the warehouse implements a multi-layered **Partitioning and Clustering strategy**:
-
-### 1. Native Partitioning (Cost Control)
-
-- **Staging (Silver):**
-  - Partitioned by `transaction_date` (Day).
-  - Ensures that cleaning and deduplication tasks only scan the *new* daily data rather than the full history.
-
-- **Intermediate & Gold:**
-  - Partitioned by `partition_month` (Month).
-  - Aligns with the primary BI use case (Month-over-Month growth).
-  - Prevents "too many partitions" overhead while ensuring **Partition Pruning** on every dashboard query.
-
----
-
-### 2. Strategic Clustering (Query Acceleration)
-
-- **Join Keys:**
-  - Tables are clustered by `invoice_id`.
-  - Enables **colocated joins** between Sales and Geography models.
-  - Significantly reduces shuffle cost during query execution.
-
-- **Filter Dimensions:**
-  - Gold tables are clustered by `vendor_name` and `category_name`.
-  - These are primary slicers in the Streamlit dashboard.
-  - Ensures BigQuery skips irrelevant data blocks entirely.
-
----
-
-### 3. Incremental Strategy
-
-- **Materialization:**
-  - Marts use **incremental materialization** with an `insert_overwrite` strategy.
-
-- **Lookback Window:**
-  - A **2-month lookback window** is applied.
-  - Captures late-arriving data and product returns without a full refresh.
-  - Reduces processing costs by approximately **~90%**.
-
----
-
 ## Getting Started (Reproducibility)
 
 This project is designed to be fully reproducible using GitHub Codespaces or a local DevContainer. All system dependencies are pre-configured.
@@ -137,8 +220,8 @@ Use the provided GitHub Codespace or VS Code DevContainer to ensure all dependen
 
 Once the container is started, use the following commands to verify the environment and initialize your cloud session:
 
-1. [Create GCP cloud account and create IAM service account](#detailed-gcp-setup-guide)
-2. Create an API token for Iowa Liquor sales data: [SOCRATA API](https://dev.socrata.com/foundry/data.iowa.gov/m3tr-qhgy)
+1. [**Create GCP cloud account and create IAM service account**](./documentation/GCP_SETUP_GUIDE.md)
+2. Create an API token for Iowa Liquor sales data: [**SOCRATA API**](https://dev.socrata.com/foundry/data.iowa.gov/m3tr-qhgy)
 3. Create a `.env` file based on `.env.example` (fill-in the TODOs)
 4. Run the automated setup:
 
@@ -188,56 +271,4 @@ Associated infrastructure (IAM, services, etc.)
 
 - **Clone the repository**
 - **Follow the initialization, execution, and shutdown steps**
----
-
-## Detailed GCP Setup Guide
-
-### Pre-requisite: 
-
-1. **Create GCP account**: [Google Cloud Console](https://console.cloud.google.com/)
-2. **Principal Permissions**
-
-The **Principal Account** (the human user) **must** have the following administrative roles at the GCP Project level. 
-
-| Role | Why it's needed |
-| :--- | :--- |
-| **Owner** | Provides full access to all resources; essential for initial infrastructure bootstrapping. |
-| **Service Account Key Admin** | Allows the user to generate and download the `.json` key for local authentication. |
-| **Service Usage Admin** | Required to enable BigQuery, GCS, and Resource Manager APIs automatically. |
-| **Project Mover** | Necessary if the project needs to be migrated between folders or organizations. |
-| **Organization Administrator** | Required for setting organization-level policies (if applicable). |
-
-
-##### How to Verify Your Administrative Roles
-* Open the **IAM & Admin** page in the [GCP Console](https://console.cloud.google.com/iam-admin/iam).
-* Locate your email address in the **Principal** column.
-* Ensure the roles listed above are active for your account. If they are missing, you will encounter "Permission Denied" errors during the `make apply` phase.
-
-
-3. **Create and Assign IAM Service account roles**
-
-* Manual Start: The user creates the Service Account manually in the GCP Console.
-* Elevate: The user assigns the Owner role to that Service Account temporarily.
-* Execute: 
-```bash
-# Terraform (acting as the Service Account) now has the authority to create the BigQuery datasets, the GCS buckets, and—most importantly—assign the fine-grained roles in your main.tf.
-make apply
-```
-* Secure: Once Terraform is done, **remove the Owner role from the Service Account**. It will continue to function using only the specific permissions Terraform just granted it.
-
-These are the fine grained roles terraform assigns to the Service Account using **IAM Conditions** for a restricted access only to project-specific resources.
-
-| Category | Role Name | IAM Condition (Resource Name) | Scope / Allows |
-| :--- | :--- | :--- | :--- | 
-| **Infra** | `Storage Admin` | `resource.name.startsWith("projects/_/buckets/iowa-liquor-")` | Provision Landing Zone (LZ) bucket infrastructure. |
-| **Infra** | `BigQuery Admin` | `resource.name.startsWith("projects/[ID]/datasets/iowa_liquor_")` | Configure Bronze, Silver, and Gold datasets. |
-| **Infra** | `Storage Object Admin` | `resource.name == "projects/_/buckets/[STATE_BUCKET]"` | Read/Write for Terraform remote state backend. |
-| **Data Flow** | `Storage Object Admin` | `resource.name == "projects/_/buckets/iowa-liquor-bronze"` | Authorize Bruin/dlt to ingest raw retail files. |
-| **Data Flow** | `BQ Data Editor` | *None (Project Level)* | **dbt**: Perform DDL/DML and manage schemas. |
-| **Execution** | `BQ Job User` | *None (Project Level)* | Initiate and run BigQuery query jobs. |
-| **Usage** | `Usage Consumer` | *None (Project Level)* | Project-level API and quota consumption. |
-| **---** | **---** | **---** | **---** |
-
-> **Note:** `[ID]` stands for with an actual GCP Project ID while `[STATE_BUCKET]` represents the name of the bucket used to store your Terraform `.tfstate` file.
-
 ---
