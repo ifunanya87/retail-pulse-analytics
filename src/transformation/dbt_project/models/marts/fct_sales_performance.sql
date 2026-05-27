@@ -25,6 +25,7 @@ select
     
     -- Temporal Dimensions
     transaction_date,
+    date_trunc(transaction_date, month) as sales_month,
     extract(year from transaction_date) as calendar_year,
     extract(month from transaction_date) as calendar_month,
     

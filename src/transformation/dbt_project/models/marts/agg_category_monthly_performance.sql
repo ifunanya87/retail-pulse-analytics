@@ -42,7 +42,7 @@ and forecasting feature engineering.
 -- Metrics
 with monthly_metrics as (
     select
-        date_trunc(transaction_date, month) as sales_month,
+        sales_month,
         category_name_standardized,
         category_group,
 

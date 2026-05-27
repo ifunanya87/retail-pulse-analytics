@@ -57,7 +57,7 @@ vendor_month_grid as (
 -- Metrics
 monthly_metrics as (
     select
-        date_trunc(transaction_date, month) as sales_month,
+        sales_month,
         vendor_name_standardized,
 
         sum(revenue) as total_revenue,

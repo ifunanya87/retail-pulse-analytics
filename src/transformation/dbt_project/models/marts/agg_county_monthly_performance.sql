@@ -86,7 +86,7 @@ county_month_grid as (
 -- Monthly county metrics
 monthly_metrics as (
     select
-        date_trunc(transaction_date, month) as sales_month,
+        sales_month,
         county,
 
         sum(revenue) as total_revenue,
