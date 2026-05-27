@@ -19,7 +19,8 @@
 ) }}
 
 with base as (
-    select *
+    select 
+        {{ dbt_utils.star(from=ref('fct_sales_performance'), except=["sales_month"]) }}
     from {{ ref('fct_sales_performance') }}
 ),
 
